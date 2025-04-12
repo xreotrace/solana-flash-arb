@@ -1,13 +1,17 @@
-// utils/run.js
 const path = require("path");
-const botRoot = path.join(__dirname, "..");
+const { green, red } = require("colorette");
 
-console.log("Running pre-start checks...");
+console.log("Running pre-flight checks from:", __dirname);
 
-// Run validation first
-require("./validateConfigs.js");
+try {
+  // Configs are in root/configs/
+  require("./validateConfigs.js");
 
-// Then sanitize IDL
-require("./idlSanitizer.js");
+  // IDL is in root/target/
+  require("./idlSanitizer.js");
 
-console.log("All pre-start checks completed successfully");
+  console.log(green("✓ All checks passed"));
+} catch (error) {
+  console.error(red(`✖ Failed: ${error.message}`));
+  process.exit(1);
+}

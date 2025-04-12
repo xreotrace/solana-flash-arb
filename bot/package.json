@@ -1,19 +1,21 @@
 {
-  "name": "solana-flash-arb-bot",
-  "version": "1.0.0",
-  "type": "commonjs",
   "scripts": {
-    "presanitize": "node ./utils/validateConfigs.js",
-    "sanitize": "node ./utils/idlSanitizer.js",
-    "prestart": "node ./utils/run.js",
+    "prestart": "node ../utils/run.js",
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon --watch . --exec npm start",
+    "validate": "node ../utils/validateConfigs.js",
+    "sanitize": "node ../utils/idlSanitizer.js",
+    "test": "echo \"Error: No tests yet\" && exit 0"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.29.0",
-    "@solana/web3.js": "1.73.0",
     "@solana/spl-token": "0.3.7",
+    "@solana/web3.js": "1.73.0",
     "axios": "1.4.0",
+    "colorette": "^2.0.20",
     "winston": "3.8.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
