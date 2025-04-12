@@ -1,18 +1,23 @@
 const fs = require("fs");
 const path = require("path");
 
-function sanitizeIdlFile(filePath) {
+function sanitizeIdlFile() {
   try {
-    let content = fs.readFileSync(filePath, "utf8");
+    const idlPath = path.join(__dirname, "../target/idl/flash_arbitrage.json");
+    if (!fs.existsSync(idlPath)) {
+      console.error("IDL file not found at:", idlPath);
+      return false;
+    }
 
-    // Remove BOM and fix common JSON issues
+    let content = fs.readFileSync(idlPath, "utf8");
+
+    // Remove BOM and fix JSON
     content = content
-      .replace(/^\uFEFF/, "")
-      .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2":')
-      .replace(/,\s*([}\]])/g, "$1");
+      .replace(/^\uFEFF/, "") // Remove BOM
+      .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2":') // Fix keys
+      .replace(/,\s*([}\]])/g, "$1"); // Remove trailing commas
 
-    // Write back the sanitized file
-    fs.writeFileSync(filePath, content, "utf8");
+    fs.writeFileSync(idlPath, content, "utf8");
     return true;
   } catch (error) {
     console.error("IDL sanitization failed:", error);
@@ -20,4 +25,7 @@ function sanitizeIdlFile(filePath) {
   }
 }
 
-module.exports = { sanitizeIdlFile };
+// Run immediately when called
+if (!sanitizeIdlFile()) {
+  process.exit(1);
+}
