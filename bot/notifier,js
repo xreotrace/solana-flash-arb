@@ -1,0 +1,20 @@
+const TelegramBot = require('node-telegram-bot-api');
+const logger = require('./logger');
+
+class Notifier {
+  constructor(token, chatId) {
+    this.bot = new TelegramBot(token, { polling: false });
+    this.chatId = chatId;
+  }
+
+  async send(message) {
+    try {
+      await this.bot.sendMessage(this.chatId, message);
+      logger.info(`Notification sent: ${message}`);
+    } catch (err) {
+      logger.error(`Failed to send notification: ${err.message}`);
+    }
+  }
+}
+
+module.exports = Notifier;

@@ -1,0 +1,11 @@
+{
+  "name": "solana-flash-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.98.0",
+    "axios": "^1.8.4",
+    "winston": "^3.17.0"
+  }
+}

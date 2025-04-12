@@ -1,0 +1,17 @@
+[
+    {
+        "name": "Raydium",
+        "type": "onchain",
+        "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"
+    },
+    {
+        "name": "Orca",
+        "type": "onchain",
+        "programId": "9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP"
+    },
+    {
+        "name": "Jupiter",
+        "type": "api",
+        "apiUrl": "https://quote-api.jup.ag"
+    }
+]

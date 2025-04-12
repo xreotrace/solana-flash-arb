@@ -1,0 +1,10 @@
+{
+    "rpcUrl": "https://api.mainnet-beta.solana.com",
+    "programId": "YOUR_PROGRAM_ID_HERE",
+    "flashLoanProgram": "FLASH_LOAN_PROGRAM_ID_HERE",
+    "pollingInterval": 5000,
+    "errorRetryDelay": 10000,
+    "maxSlippage": 0.5,
+    "minLiquidity": 1000,
+    "priorityFee": 10000
+}
