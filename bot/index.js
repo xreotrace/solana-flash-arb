@@ -1,12 +1,15 @@
-const path = require('path');
-const { Connection, Keypair, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } = require('@solana/web3.js');
-const { Program, Provider, BN } = require('@coral-xyz/anchor');
-const fs = require('fs');
-const axios = require('axios');
-const winston = require('winston');
-const { Token, TOKEN_PROGRAM_ID } = require('@solana/spl-token');
-
-// Enhanced logger configuration
+(async () => {
+  'use strict';
+  
+  const path = require('path');
+  const { Connection, Keypair, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } = require('@solana/web3.js');
+  const { Program, Provider, BN } = require('@coral-xyz/anchor');
+  const fs = require('fs');
+  const axios = require('axios');
+  const winston = require('winston');
+  const { Token, TOKEN_PROGRAM_ID } = require('@solana/spl-token');
+  
+  // Enhanced logger configuration
 const logger = winston.createLogger({
   levels: winston.config.syslog.levels,
   format: winston.format.combine(
@@ -353,3 +356,9 @@ bot.start().catch(err => {
   logger.error('Failed to start bot', { error: err.message });
   process.exit(1);
 });
+  
+  // Add this at the VERY BOTTOM
+  })().catch(err => {
+    console.error('Bot crashed:', err);
+    process.exit(1);
+  });

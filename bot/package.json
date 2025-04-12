@@ -1,11 +1,12 @@
 {
   "name": "solana-flash-bot",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "commonjs",
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",
-    "@solana/web3.js": "^1.98.0",
-    "axios": "^1.8.4",
-    "winston": "^3.17.0"
+    "@solana/web3.js": "^1.73.0",
+    "@solana/spl-token": "^0.3.7",
+    "axios": "^1.4.0",
+    "winston": "^3.8.2"
   }
 }
