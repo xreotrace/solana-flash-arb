@@ -1,7 +1,7 @@
 module.exports = (configPath) => {
+  const path = require("path");
   const { green, red } = require("colorette");
   const fs = require("fs");
-  const path = require("path");
 
   try {
     const dexes = JSON.parse(
@@ -16,7 +16,7 @@ module.exports = (configPath) => {
 
     console.log(green("✓ Configs validated"));
   } catch (error) {
-    console.error(red(`Config error: ${error.message}`));
-    throw error; // Re-throw for run.js to handle
+    console.error(red("Config error:"), error.message);
+    throw error;
   }
 };
