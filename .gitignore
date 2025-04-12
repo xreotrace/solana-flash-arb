@@ -5,3 +5,5 @@ target
 node_modules
 test-ledger
 .yarn
+# IDL backups
+target/idl/*.bak

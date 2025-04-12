@@ -1,30 +1,45 @@
-const anchor = require('@coral-xyz/anchor');
-const { Connection, Keypair, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } = require('@solana/web3.js');
-const { Token, TOKEN_PROGRAM_ID } = require('@solana/spl-token');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
-const winston = require('winston');
-const { WebSocket } = require('ws');
+const { sanitizeIdlFile } = require("./utils/idlSanitizer");
+require("./utils/validateConfigs")();
+
+// modify your program loading to:
+const idlPath = path.join(__dirname, "../target/idl/flash_arbitrage.json");
+if (!sanitizeIdlFile(idlPath)) {
+  process.exit(1);
+}
+
+const anchor = require("@coral-xyz/anchor");
+const {
+  Connection,
+  Keypair,
+  PublicKey,
+  clusterApiUrl,
+  LAMPORTS_PER_SOL,
+} = require("@solana/web3.js");
+const { Token, TOKEN_PROGRAM_ID } = require("@solana/spl-token");
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
+const winston = require("winston");
+const { WebSocket } = require("ws");
 
 // ======================
 // Configuration
 // ======================
 const CONFIG = {
-  rpcUrl: clusterApiUrl('mainnet-beta'),
-  commitment: 'confirmed',
+  rpcUrl: clusterApiUrl("mainnet-beta"),
+  commitment: "confirmed",
   pollingInterval: 3000,
   maxSlippage: 0.5, // 0.5%
   minProfitThreshold: 0.3, // 0.3%
   maxPositionSize: 0.1, // 10% of pool liquidity
-  priorityFee: 10000 // micro-lamports
+  priorityFee: 10000, // micro-lamports
 };
 
 // ======================
 // Logger Setup
 // ======================
 const logger = winston.createLogger({
-  level: 'debug',
+  level: "debug",
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
@@ -35,14 +50,14 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.simple()
-      )
+      ),
     }),
-    new winston.transports.File({ 
-      filename: path.join(__dirname, 'logs/arbitrage.log'),
+    new winston.transports.File({
+      filename: path.join(__dirname, "logs/arbitrage.log"),
       maxsize: 10 * 1024 * 1024,
-      maxFiles: 5
-    })
-  ]
+      maxFiles: 5,
+    }),
+  ],
 });
 
 // ======================
@@ -52,7 +67,7 @@ class SolanaService {
   constructor() {
     this.connection = new Connection(CONFIG.rpcUrl, {
       commitment: CONFIG.commitment,
-      wsEndpoint: CONFIG.rpcUrl.replace('https', 'wss')
+      wsEndpoint: CONFIG.rpcUrl.replace("https", "wss"),
     });
     this.wallet = this.loadWallet();
     this.provider = new anchor.AnchorProvider(
@@ -67,12 +82,14 @@ class SolanaService {
     try {
       const keypairPath = path.join(
         process.env.HOME || process.env.USERPROFILE,
-        '.config', 'solana', 'id.json'
+        ".config",
+        "solana",
+        "id.json"
       );
-      const secretKey = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
+      const secretKey = JSON.parse(fs.readFileSync(keypairPath, "utf8"));
       return Keypair.fromSecretKey(Uint8Array.from(secretKey));
     } catch (error) {
-      logger.error('Wallet loading failed', { error: error.message });
+      logger.error("Wallet loading failed", { error: error.message });
       process.exit(1);
     }
   }
@@ -93,16 +110,16 @@ class SolanaService {
 
 class DexService {
   constructor() {
-    this.dexes = require('../configs/dexes.json');
-    this.tokenPairs = require('../configs/tokens.json');
+    this.dexes = require("../configs/dexes.json");
+    this.tokenPairs = require("../configs/tokens.json");
   }
 
   async fetchPrices(tokenA, tokenB) {
     const prices = [];
-    
-    for (const dex of this.dexes.filter(d => d.enabled)) {
+
+    for (const dex of this.dexes.filter((d) => d.enabled)) {
       try {
-        if (dex.type === 'api') {
+        if (dex.type === "api") {
           const price = await this.fetchApiPrice(dex, tokenA, tokenB);
           prices.push(price);
         } else {
@@ -110,13 +127,13 @@ class DexService {
           prices.push(price);
         }
       } catch (error) {
-        logger.warn(`DEX ${dex.name} price fetch failed`, { 
+        logger.warn(`DEX ${dex.name} price fetch failed`, {
           dex: dex.name,
-          error: error.message 
+          error: error.message,
         });
       }
     }
-    
+
     return prices;
   }
 
@@ -127,9 +144,9 @@ class DexService {
         outputMint: tokenB,
         amount: LAMPORTS_PER_SOL,
         slippageBps: CONFIG.maxSlippage * 100,
-        feeBps: 50
+        feeBps: 50,
       },
-      timeout: 5000
+      timeout: 5000,
     });
 
     return {
@@ -138,7 +155,7 @@ class DexService {
       priceBtoA: response.data.inAmount / response.data.outAmount,
       liquidity: response.data.liquidity,
       maxAmount: response.data.inAmount,
-      fee: response.data.feeAmount || 0
+      fee: response.data.feeAmount || 0,
     };
   }
 
@@ -148,10 +165,10 @@ class DexService {
     return {
       dex: dex.name,
       priceAtoB: 1.02,
-      priceBtoA: 1/1.02,
+      priceBtoA: 1 / 1.02,
       liquidity: 10000,
       maxAmount: 1000000,
-      fee: 0
+      fee: 0,
     };
   }
 }
@@ -164,48 +181,73 @@ class ArbitrageEngine {
     this.solana = new SolanaService();
     this.dex = new DexService();
     this.running = false;
-    this.programId = new PublicKey('F4akDLGjGM9zeroDC2S7JY3YxoWzVnU724khnVTe6LXR');
+    this.programId = new PublicKey(
+      "F4akDLGjGM9zeroDC2S7JY3YxoWzVnU724khnVTe6LXR"
+    );
     this.program = this.loadProgram();
   }
 
   loadProgram() {
-    const idl = JSON.parse(fs.readFileSync(
-      path.join(__dirname, '../target/idl/flash_arbitrage.json'),
-      'utf8'
-    ));
-    return new anchor.Program(idl, this.programId, this.solana.provider);
+    try {
+      const idlPath = path.join(
+        __dirname,
+        "../target/idl/flash_arbitrage.json"
+      );
+      const idlFile = fs.readFileSync(idlPath, "utf8");
+
+      // Remove BOM if present and any trailing commas
+      const sanitizedJson = idlFile
+        .replace(/^\uFEFF/, "") // Remove BOM
+        .replace(/,\s*([}\]])/g, "$1"); // Remove trailing commas
+
+      const idl = JSON.parse(sanitizedJson);
+
+      if (!idl.instructions || !idl.accounts) {
+        throw new Error("Invalid IDL structure");
+      }
+
+      return new anchor.Program(idl, this.programId, this.solana.provider);
+    } catch (error) {
+      logger.error("Failed to load program IDL", {
+        error: error.message,
+        stack: error.stack,
+      });
+      process.exit(1);
+    }
   }
 
   async start() {
     this.running = true;
-    logger.info('Arbitrage bot started', {
+    logger.info("Arbitrage bot started", {
       wallet: this.solana.wallet.publicKey.toString(),
-      rpc: CONFIG.rpcUrl
+      rpc: CONFIG.rpcUrl,
     });
 
     while (this.running) {
       try {
         await this.arbitrageCycle();
-        await new Promise(resolve => setTimeout(resolve, CONFIG.pollingInterval));
+        await new Promise((resolve) =>
+          setTimeout(resolve, CONFIG.pollingInterval)
+        );
       } catch (error) {
-        logger.error('Arbitrage cycle failed', { error: error.message });
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        logger.error("Arbitrage cycle failed", { error: error.message });
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       }
     }
   }
 
   async arbitrageCycle() {
-    for (const pair of this.dex.tokenPairs.filter(p => p.enabled)) {
+    for (const pair of this.dex.tokenPairs.filter((p) => p.enabled)) {
       try {
         const prices = await this.dex.fetchPrices(pair.tokenA, pair.tokenB);
         const opportunity = this.findArbitrage(prices, pair);
-        
+
         if (opportunity) {
           await this.executeArbitrage(opportunity);
         }
       } catch (error) {
         logger.error(`Token pair ${pair.tokenA}/${pair.tokenB} failed`, {
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -226,7 +268,7 @@ class ArbitrageEngine {
         tokenB: pairConfig.tokenB,
         amount,
         profitPercent,
-        minProfit: (pairConfig.minProfit / 100) * bestBuy.priceAtoB * amount
+        minProfit: (pairConfig.minProfit / 100) * bestBuy.priceAtoB * amount,
       };
     }
     return null;
@@ -234,12 +276,12 @@ class ArbitrageEngine {
 
   findBestPrices(prices) {
     return [
-      prices.reduce((min, current) => 
+      prices.reduce((min, current) =>
         current.priceAtoB < min.priceAtoB ? current : min
       ),
-      prices.reduce((max, current) => 
+      prices.reduce((max, current) =>
         current.priceBtoA > max.priceBtoA ? current : max
-      )
+      ),
     ];
   }
 
@@ -265,23 +307,23 @@ class ArbitrageEngine {
         )
         .rpc({
           skipPreflight: false,
-          preflightCommitment: 'confirmed',
-          maxRetries: 3
+          preflightCommitment: "confirmed",
+          maxRetries: 3,
         });
 
-      logger.info('Arbitrage executed', {
+      logger.info("Arbitrage executed", {
         txHash: tx,
         amount: opportunity.amount,
         profitPercent: opportunity.profitPercent.toFixed(2),
         dexA: opportunity.dexA,
-        dexB: opportunity.dexB
+        dexB: opportunity.dexB,
       });
 
       return tx;
     } catch (error) {
-      logger.error('Arbitrage execution failed', {
+      logger.error("Arbitrage execution failed", {
         error: error.message,
-        opportunity
+        opportunity,
       });
       throw error;
     }
@@ -289,7 +331,7 @@ class ArbitrageEngine {
 
   stop() {
     this.running = false;
-    logger.info('Arbitrage bot stopped');
+    logger.info("Arbitrage bot stopped");
   }
 }
 
@@ -298,16 +340,16 @@ class ArbitrageEngine {
 // ======================
 const bot = new ArbitrageEngine();
 
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await bot.stop();
   process.exit(0);
 });
 
-process.on('unhandledRejection', error => {
-  logger.error('Unhandled rejection', { error: error.message });
+process.on("unhandledRejection", (error) => {
+  logger.error("Unhandled rejection", { error: error.message });
 });
 
-bot.start().catch(error => {
-  logger.error('Fatal bot error', { error: error.message });
+bot.start().catch((error) => {
+  logger.error("Fatal bot error", { error: error.message });
   process.exit(1);
 });
