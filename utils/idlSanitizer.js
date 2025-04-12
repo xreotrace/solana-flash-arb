@@ -1,13 +1,17 @@
-const fs = require("fs");
-const path = require("path");
+module.exports = (idlPath) => {
+  const { green, red } = require("colorette");
+  const fs = require("fs");
 
-try {
-  // Path to root/target/
-  const idlPath = path.join(__dirname, "../target/idl/flash_arbitrage.json");
-  console.log("Sanitizing IDL at:", idlPath);
+  try {
+    let content = fs
+      .readFileSync(idlPath, "utf8")
+      .replace(/^\uFEFF/, "") // Remove BOM
+      .replace(/,\s*([}\]])/g, "$1"); // Remove trailing commas
 
-  // ...rest of sanitization code...
-} catch (error) {
-  console.error("IDL error:", error.message);
-  process.exit(1);
-}
+    fs.writeFileSync(idlPath, content, "utf8");
+    console.log(green("✓ IDL sanitized"));
+  } catch (error) {
+    console.error(red(`IDL error: ${error.message}`));
+    throw error;
+  }
+};

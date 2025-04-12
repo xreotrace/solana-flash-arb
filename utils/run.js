@@ -1,17 +1,19 @@
-const path = require("path");
 const { green, red } = require("colorette");
+const path = require("path");
 
 console.log("Running pre-flight checks from:", __dirname);
 
 try {
-  // Configs are in root/configs/
-  require("./validateConfigs.js");
+  // Load configs from root/configs/
+  const configPath = path.join(__dirname, "configs");
+  require("./validateConfigs")(configPath);
 
-  // IDL is in root/target/
-  require("./idlSanitizer.js");
+  // Sanitize IDL from root/target/
+  const idlPath = path.join(__dirname, "target", "idl", "flash_arbitrage.json");
+  require("./idlSanitizer")(idlPath);
 
-  console.log(green("✓ All checks passed"));
+  console.log(green("✓ All systems ready"));
 } catch (error) {
-  console.error(red(`✖ Failed: ${error.message}`));
+  console.error(red(`✖ Startup failed: ${error.message}`));
   process.exit(1);
 }

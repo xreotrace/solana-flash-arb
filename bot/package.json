@@ -1,11 +1,10 @@
 {
   "scripts": {
-    "prestart": "node ../utils/run.js",
+    "prestart": "cd .. && node utils/run.js",
     "start": "node index.js",
-    "dev": "nodemon --watch . --exec npm start",
-    "validate": "node ../utils/validateConfigs.js",
-    "sanitize": "node ../utils/idlSanitizer.js",
-    "test": "echo \"Error: No tests yet\" && exit 0"
+    "dev": "nodemon --watch . --exec 'npm start'",
+    "validate": "cd .. && node utils/validateConfigs.js",
+    "sanitize": "cd .. && node utils/idlSanitizer.js"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.29.0",
