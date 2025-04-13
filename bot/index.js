@@ -1,9 +1,10 @@
-const { sanitizeIdlFile } = require("./utils/idlSanitizer");
-require("./utils/validateConfigs")();
-
-// modify your program loading to:
+const path = require("path");
+const fs = require("fs");
+const idlSanitizer = require("../utils/idlSanitizer");
+const validateConfigs = require("../utils/validateConfigs");
 const idlPath = path.join(__dirname, "../target/idl/flash_arbitrage.json");
-if (!sanitizeIdlFile(idlPath)) {
+validateConfigs();
+if (!idlSanitizer(idlPath)) {
   process.exit(1);
 }
 
@@ -16,8 +17,6 @@ const {
   LAMPORTS_PER_SOL,
 } = require("@solana/web3.js");
 const { Token, TOKEN_PROGRAM_ID } = require("@solana/spl-token");
-const fs = require("fs");
-const path = require("path");
 const axios = require("axios");
 const winston = require("winston");
 const { WebSocket } = require("ws");

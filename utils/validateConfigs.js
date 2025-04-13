@@ -25,4 +25,5 @@ function validateConfigs() {
   }
 }
 
-validateConfigs();
+// Export the function instead of executing it
+module.exports = validateConfigs;

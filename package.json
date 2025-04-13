@@ -1,7 +1,7 @@
 {
   "scripts": {
     "prestart": "node utils/run.js",
-    "start": "node index.js",
+    "start": "node bot/index.js",
     "dev": "nodemon --watch . --exec 'npm start'",
     "validate": "node utils/validateConfigs.js",
     "sanitize": "node utils/idlSanitizer.js",
