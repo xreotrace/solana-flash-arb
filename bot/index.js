@@ -188,11 +188,17 @@ class ArbitrageEngine {
 
   loadProgram() {
     try {
-      const idlPath = path.join(
-        __dirname,
-        "../target/idl/flash_arbitrage.json"
+      const idl = JSON.parse(
+        fs.readFileSync(
+          path.join(__dirname, "../target/idl/flash_arbitrage.json"),
+          "utf8"
+        )
       );
-      const idlFile = fs.readFileSync(idlPath, "utf8");
+
+      // Add validation
+      if (!idl.instructions) {
+        throw new Error("IDL missing instructions");
+      }
 
       // Remove BOM if present and any trailing commas
       const sanitizedJson = idlFile
