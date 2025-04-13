@@ -1,12 +1,12 @@
 {
   "scripts": {
-    "prestart": "cd .. && node utils/run.js",
+    "prestart": "node utils/run.js",
     "start": "node index.js",
     "dev": "nodemon --watch . --exec 'npm start'",
-    "validate": "cd .. && node utils/validateConfigs.js",
-    "sanitize": "cd .. && node utils/idlSanitizer.js",
-    "name": "solana-flash-arb",
-    "private": "true"
+    "validate": "node utils/validateConfigs.js",
+    "sanitize": "node utils/idlSanitizer.js",
+    "private": "true",
+    "name": "solana-flash-arb"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.29.0",
