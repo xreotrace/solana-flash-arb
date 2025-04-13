@@ -1,22 +1,9 @@
-[toolchain]
-package_manager = "yarn"
-
-[features]
-resolution = true
-skip-lint = false
-
-[programs.localnet]
-solana_flash_arb = "F4akDLGjGM9zeroDC2S7JY3YxoWzVnU724khnVTe6LXR"
-
-[registry]
-url = "https://api.apr.dev"
-
 [provider]
-cluster = "devnet"  # Start with devnet for development
+cluster = "devnet"
 wallet = "C:/Users/mdmar/.config/solana/id.json"
 
-[programs.devnet]  # or mainnet if you're on mainnet
+[programs.devnet]
 flash_arbitrage = "F4akDLGjGM9zeroDC2S7JY3YxoWzVnU724khnVTe6LXR"
 
 [scripts]
-test = "yarn run mocha -t 1000000 tests/**/*.ts"
+test = "yarn run mocha"
