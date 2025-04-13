@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "prestart": "cd .. && node utils/run.js",
+    "start": "node index.js",
+    "dev": "nodemon --watch . --exec 'npm start'",
+    "validate": "cd .. && node utils/validateConfigs.js",
+    "sanitize": "cd .. && node utils/idlSanitizer.js",
+    "name": "solana-flash-arb",
+    "private": "true"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.29.0",
+    "@solana/spl-token": "^0.1.8",
+    "@solana/web3.js": "^1.98.0",
+    "axios": "^1.8.4",
+    "colorette": "^2.0.20",
+    "module-alias": "^2.2.3",
+    "winston": "3.8.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
