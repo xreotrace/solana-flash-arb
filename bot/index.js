@@ -1,31 +1,18 @@
-const path = require("path");
-const fs = require("fs");
-const idlSanitizer = require("../utils/idlSanitizer");
-const validateConfigs = require("../utils/validateConfigs");
-const idlPath = path.join(__dirname, "../target/idl/flash_arbitrage.json");
-validateConfigs();
-if (!idlSanitizer(idlPath)) {
-  process.exit(1);
-}
+"use strict";
 
 const anchor = require("@coral-xyz/anchor");
-const {
-  Connection,
-  Keypair,
-  PublicKey,
-  clusterApiUrl,
-  LAMPORTS_PER_SOL,
-} = require("@solana/web3.js");
+const { Connection, Keypair, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } =
+  anchor.web3;
 const { Token, TOKEN_PROGRAM_ID } = require("@solana/spl-token");
+const path = require("path");
+const fs = require("fs");
 const axios = require("axios");
 const winston = require("winston");
 const { WebSocket } = require("ws");
 
-// ======================
 // Configuration
-// ======================
 const CONFIG = {
-  rpcUrl: clusterApiUrl("mainnet-beta"),
+  rpcUrl: clusterApiUrl("devnet"),
   commitment: "confirmed",
   pollingInterval: 3000,
   maxSlippage: 0.5, // 0.5%
@@ -34,9 +21,7 @@ const CONFIG = {
   priorityFee: 10000, // micro-lamports
 };
 
-// ======================
 // Logger Setup
-// ======================
 const logger = winston.createLogger({
   level: "debug",
   format: winston.format.combine(
@@ -59,9 +44,6 @@ const logger = winston.createLogger({
   ],
 });
 
-// ======================
-// Core Services
-// ======================
 class SolanaService {
   constructor() {
     this.connection = new Connection(CONFIG.rpcUrl, {
@@ -160,7 +142,6 @@ class DexService {
 
   async fetchOnChainPrice(dex, tokenA, tokenB) {
     // Implement actual on-chain price fetching
-    // Using Serum or Raydium SDK would go here
     return {
       dex: dex.name,
       priceAtoB: 1.02,
@@ -172,9 +153,6 @@ class DexService {
   }
 }
 
-// ======================
-// Arbitrage Engine
-// ======================
 class ArbitrageEngine {
   constructor() {
     this.solana = new SolanaService();
@@ -188,56 +166,53 @@ class ArbitrageEngine {
 
   loadProgram() {
     try {
-      const idl = JSON.parse(
-        fs.readFileSync(
-          path.join(__dirname, "../target/idl/flash_arbitrage.json"),
-          "utf8"
-        )
+      const idlPath = path.join(
+        __dirname,
+        "../target/idl/flash_arbitrage.json"
       );
+      const idlFile = fs.readFileSync(idlPath, "utf8");
+      const idl = JSON.parse(idlFile);
 
-      // Add validation
       if (!idl.instructions) {
-        throw new Error("IDL missing instructions");
-      }
-
-      // Remove BOM if present and any trailing commas
-      const sanitizedJson = idlFile
-        .replace(/^\uFEFF/, "") // Remove BOM
-        .replace(/,\s*([}\]])/g, "$1"); // Remove trailing commas
-
-      const idl = JSON.parse(sanitizedJson);
-
-      if (!idl.instructions || !idl.accounts) {
-        throw new Error("Invalid IDL structure");
+        throw new Error("Invalid IDL structure - missing instructions");
       }
 
       return new anchor.Program(idl, this.programId, this.solana.provider);
-    } catch (error) {
-      logger.error("Failed to load program IDL", {
-        error: error.message,
-        stack: error.stack,
-      });
+    } catch (err) {
+      logger.error("Failed to load program:", { error: err.message });
       process.exit(1);
     }
   }
 
   async start() {
-    this.running = true;
-    logger.info("Arbitrage bot started", {
-      wallet: this.solana.wallet.publicKey.toString(),
-      rpc: CONFIG.rpcUrl,
-    });
+    try {
+      // Validate configs and SOL balance
+      const solBalance = await this.solana.connection.getBalance(
+        this.solana.wallet.publicKey
+      );
+      if (solBalance < 0.1 * LAMPORTS_PER_SOL) {
+        throw new Error(
+          `Insufficient SOL balance. Need at least 0.1 SOL, have ${
+            solBalance / LAMPORTS_PER_SOL
+          }`
+        );
+      }
 
-    while (this.running) {
-      try {
+      logger.info("Arbitrage bot started", {
+        rpc: CONFIG.rpcUrl,
+        wallet: this.solana.wallet.publicKey.toString(),
+      });
+
+      this.running = true;
+      while (this.running) {
         await this.arbitrageCycle();
         await new Promise((resolve) =>
           setTimeout(resolve, CONFIG.pollingInterval)
         );
-      } catch (error) {
-        logger.error("Arbitrage cycle failed", { error: error.message });
-        await new Promise((resolve) => setTimeout(resolve, 10000));
       }
+    } catch (err) {
+      logger.error("Startup failed", { error: err.message });
+      process.exit(1);
     }
   }
 
@@ -340,9 +315,7 @@ class ArbitrageEngine {
   }
 }
 
-// ======================
 // Main Execution
-// ======================
 const bot = new ArbitrageEngine();
 
 process.on("SIGINT", async () => {

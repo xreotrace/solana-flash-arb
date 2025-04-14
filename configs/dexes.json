@@ -1,20 +1,7 @@
-[
-  {
-    "name": "Raydium",
-    "type": "onchain",
-    "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
-    "enabled": true
-  },
-  {
-    "name": "Orca",
-    "type": "onchain",
-    "programId": "9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP",
-    "enabled": true
-  },
-  {
-    "name": "Jupiter",
-    "type": "api",
-    "apiUrl": "https://quote-api.jup.ag",
-    "enabled": true
-  }
-]
+{
+  "name": "Raydium_Devnet",
+  "type": "program",
+  "programId": "9HzJyW1qZsEiSfMUf6L2jo3CcTKAyBmSyKdwQeYisHrC",
+  "ammId": "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1",
+  "enabled": true
+}
