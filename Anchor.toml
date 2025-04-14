@@ -1,8 +1,8 @@
 [provider]
-cluster = "devnet"
+cluster = "mainnet-beta"
 wallet = "C:/Users/mdmar/.config/solana/id.json"
 
-[programs.devnet]
+[programs.mainnet-beta]
 flash_arbitrage = "F4akDLGjGM9zeroDC2S7JY3YxoWzVnU724khnVTe6LXR"
 
 [scripts]

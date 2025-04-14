@@ -12,7 +12,7 @@ const { WebSocket } = require("ws");
 
 // Configuration
 const CONFIG = {
-  rpcUrl: clusterApiUrl("devnet"),
+  rpcUrl: clusterApiUrl("mainnet-beta"),
   commitment: "confirmed",
   pollingInterval: 3000,
   maxSlippage: 0.5, // 0.5%
